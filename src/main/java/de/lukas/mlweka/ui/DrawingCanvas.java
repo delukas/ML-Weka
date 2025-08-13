@@ -1,12 +1,16 @@
 package de.lukas.mlweka.ui;
 
 import de.lukas.mlweka.services.WekaService;
+import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 
 import java.io.File;
 import java.util.Arrays;
@@ -14,17 +18,43 @@ import java.util.stream.IntStream;
 
 public class DrawingCanvas extends VBox {
 
-    private final int GRID_SIZE = 28;
-    private final int CANVAS_SIZE = GRID_SIZE*15;
-    private final int CELL_SIZE = CANVAS_SIZE / GRID_SIZE;
+    private static final int GRID_SIZE = 28;
+    private static final int CANVAS_SIZE = GRID_SIZE * 15;
+    private static final int CELL_SIZE = CANVAS_SIZE / GRID_SIZE;
 
     private final Canvas canvas = new Canvas(CANVAS_SIZE, CANVAS_SIZE);
+    private final Text text = new Text();
     private final GraphicsContext gc = canvas.getGraphicsContext2D();
     private double[][] imageData = new double[GRID_SIZE][GRID_SIZE];
     private WekaService wekaService;
 
     public DrawingCanvas() {
+        setAlignment(Pos.CENTER);
+        setSpacing(20);
 
+        HBox buttonRow = getHBox();
+        buttonRow.setAlignment(Pos.CENTER);
+
+        canvas.setCursor(Cursor.CROSSHAIR);
+        canvas.setOnMousePressed(e -> drawAt(e.getX(), e.getY()));
+        canvas.setOnMouseDragged(e -> drawAt(e.getX(), e.getY()));
+
+        text.setFont(Font.font("Arial", FontWeight.BLACK, 390));
+
+        text.setText("8");
+        text.setFill(Color.TRANSPARENT);
+
+        HBox content = new HBox(50,
+                new VBox(15, buttonRow, canvas),
+                text
+        );
+        content.setAlignment(Pos.CENTER);
+
+        getChildren().addAll(content);
+        reset();
+    }
+
+    private HBox getHBox() {
         Button resetButton = new Button("Canvas zurücksetzen");
         resetButton.setOnAction(_ -> reset());
 
@@ -33,31 +63,24 @@ public class DrawingCanvas extends VBox {
         validateButton.setOnAction(_ -> {
             centerImage();
             int predictedNumber = wekaService.predictNumber(getImageDataFlat());
-            System.out.println(predictedNumber);
+            text.setText(String.valueOf(predictedNumber));
+            text.setFill(Color.BLACK);
         });
 
-        Button initWekaButton = new Button(new File(WekaService.MODEL_PATH).exists() ? "Modell laden" : "Modell trainieren");
+        Button initWekaButton = new Button(new File(WekaService.MODEL_PATH).exists()
+                ? "Modell laden" : "Modell trainieren");
         initWekaButton.setOnAction(_ -> {
             wekaService = new WekaService();
             validateButton.setDisable(false);
             initWekaButton.setDisable(true);
-
         });
 
-        canvas.setCursor(Cursor.CROSSHAIR);
-
-        canvas.setOnMousePressed(e -> drawAt(e.getX(), e.getY()));
-
-        canvas.setOnMouseDragged(e -> drawAt(e.getX(), e.getY()));
-
-        this.getChildren().addAll(resetButton, initWekaButton, canvas, validateButton);
-        reset();
+        return new HBox(10, resetButton, initWekaButton, validateButton);
     }
 
     private void drawAt(double x, double y) {
         int gridX = (int) (x / CELL_SIZE);
         int gridY = (int) (y / CELL_SIZE);
-
         if (gridX < 0 || gridY < 0 || gridX >= GRID_SIZE || gridY >= GRID_SIZE) return;
 
         int radius = 2;
@@ -74,11 +97,9 @@ public class DrawingCanvas extends VBox {
                 if (distance > maxDistance) continue;
 
                 double intensity = Math.pow(1.0 - (distance / maxDistance), 2.0);
-
                 imageData[ny][nx] = Math.min(1.0, imageData[ny][nx] + intensity);
             }
         }
-
         drawImageData();
     }
 
@@ -109,21 +130,15 @@ public class DrawingCanvas extends VBox {
         drawImageData();
     }
 
-    private void centerImage(){
-
-        int top = 0;
-        int bottom = 0;
-        int left = 0;
-        int right = 0;
+    private void centerImage() {
+        int top = 0, bottom = 0, left = 0, right = 0;
 
         for (int i = 0; i < imageData.length; i++) {
             final int pointer = i;
-
             top = top == pointer && Arrays.stream(imageData[pointer]).allMatch(v -> v == 0) ? pointer + 1 : top;
-            bottom = bottom == pointer && Arrays.stream(imageData[imageData.length-1-pointer]).allMatch(v -> v == 0) ? pointer + 1 : bottom;
-
-            left = left == pointer && IntStream.range(0, imageData.length).allMatch(y -> imageData[y][pointer] == 0) ? pointer + 1 : left;
-            right = right == pointer && IntStream.range(0, imageData.length).allMatch(y -> imageData[y][imageData.length-1-pointer] == 0) ? pointer + 1 : right;
+            bottom = bottom == pointer && Arrays.stream(imageData[GRID_SIZE - 1 - pointer]).allMatch(v -> v == 0) ? pointer + 1 : bottom;
+            left = left == pointer && IntStream.range(0, GRID_SIZE).allMatch(y -> imageData[y][pointer] == 0) ? pointer + 1 : left;
+            right = right == pointer && IntStream.range(0, GRID_SIZE).allMatch(y -> imageData[y][GRID_SIZE - 1 - pointer] == 0) ? pointer + 1 : right;
         }
 
         final int shiftY = (bottom - top) / 2;
@@ -144,7 +159,6 @@ public class DrawingCanvas extends VBox {
 
         imageData = centered;
         drawImageData();
-
     }
 
     public double[] getImageDataFlat() {

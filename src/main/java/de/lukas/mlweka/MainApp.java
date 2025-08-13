@@ -3,9 +3,9 @@ package de.lukas.mlweka;
 import de.lukas.mlweka.ui.DrawingCanvas;
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.text.Text;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class MainApp extends Application {
@@ -15,15 +15,9 @@ public class MainApp extends Application {
 
         DrawingCanvas drawingCanvas = new DrawingCanvas();
 
-        TabPane tabPane = new TabPane();
-        Tab testTab = new Tab("Daten prüfen", drawingCanvas);
-        Tab dataTab = new Tab("Daten erstellen", new Text("Test"));
-        testTab.setClosable(false);
-        dataTab.setClosable(false);
-
-        tabPane.getTabs().add(testTab);
-        tabPane.getTabs().add(dataTab);
-        Scene scene = new Scene(tabPane, 1000, 600);
+        Scene scene = new Scene(drawingCanvas, 900, 500);
+        VBox.setVgrow(drawingCanvas, Priority.ALWAYS);
+        HBox.setHgrow(drawingCanvas, Priority.ALWAYS);
         stage.setScene(scene);
         stage.setTitle("ML-Weka");
         stage.show();
