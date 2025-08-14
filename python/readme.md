@@ -1,6 +1,7 @@
 
 ### Anforderungen
 - Datensatz herunterladen: https://www.kaggle.com/datasets/hojjatk/mnist-dataset entpacken und die Dateien aus dem Zip-Archiv in den `raw-data`-Ordner einfügen.
+- Alternativ kann auch das Zip-Archiv im raw-data Ordner verwendet werden.
 - Es sollte eine Virtuelle Enviroment für Python aufzusetzen, da für das Validierungsfile externe Bibliotheken verwendet werden.
 
 ### ENV initialisieren:
