@@ -9,6 +9,7 @@ def read_images(filename):
 
 def read_labels(filename):
     with open(filename, 'rb') as f:
+        magic, num_labels = struct.unpack('>II', f.read(8))
         labels = list(f.read())
     return labels
 
@@ -38,5 +39,6 @@ test_labels = read_labels(test_labels_file)
 
 save_arff(train_images, train_labels, "mnist_train.arff")
 save_arff(test_images, test_labels, "mnist_test.arff")
+print("Erfolgreich erstellt")
 
 # TODO: Danach müssen die .arff Files in 'src/main/resources' kopiert werden
