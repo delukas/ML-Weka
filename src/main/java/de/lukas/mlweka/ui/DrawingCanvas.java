@@ -56,7 +56,10 @@ public class DrawingCanvas extends VBox {
 
     private HBox getHBox() {
         Button resetButton = new Button("Canvas zurücksetzen");
-        resetButton.setOnAction(_ -> reset());
+        resetButton.setOnAction(_ -> {
+            text.setFill(Color.TRANSPARENT);
+            reset();
+        });
 
         Button validateButton = new Button("Canvas prüfen");
         validateButton.setDisable(true);
