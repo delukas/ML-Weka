@@ -16,6 +16,7 @@ public class WekaService {
     public static final String TRAIN_DATA_PATH = BASE_PATH + "mnist_train.arff";
     public static final String TEST_DATA_PATH = BASE_PATH + "mnist_test.arff";
     public static final String MODEL_PATH = BASE_PATH + "model.model";
+    public static final String HEADER_PATH = BASE_PATH + "header.model";
 
     private RandomForest model = new RandomForest();
     private Instances header;
@@ -97,6 +98,7 @@ public class WekaService {
 
         try {
             model = (RandomForest) SerializationHelper.read(MODEL_PATH);
+            header = (Instances) SerializationHelper.read(HEADER_PATH);
         } catch (Exception e) {
             throw new RuntimeException(MODEL_PATH + " konnte nicht gelesen werden.");
         } finally {
@@ -109,6 +111,7 @@ public class WekaService {
 
         try {
             SerializationHelper.write(MODEL_PATH, model);
+            SerializationHelper.write(HEADER_PATH, header);
         } catch (Exception e) {
             throw new RuntimeException("Fehler beim speichern des Modells: " + e);
         } finally {
