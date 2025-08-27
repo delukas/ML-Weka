@@ -26,10 +26,10 @@ public class WekaService {
         File modelFile = new File(MODEL_PATH);
         if(modelFile.exists() && !modelFile.isDirectory()) {
             loadModel();
-            return;
+        } else {
+            trainModel();
         }
-
-        trainModel();
+        evaluateModel();
 
     }
 
@@ -51,9 +51,6 @@ public class WekaService {
             System.out.println("Modell erfolgreich trainiert.");
         }
 
-
-        evaluateModel();
-
         saveModel();
 
     }
@@ -65,7 +62,7 @@ public class WekaService {
         try {
             Evaluation evaluation = new Evaluation(testData);
             evaluation.evaluateModel(model, testData);
-            System.out.println(evaluation.toSummaryString("\n---- Evaluation der Testdaten ----\n", false));
+            System.out.println(evaluation.toSummaryString("\n=== Evaluation der Testdaten ===\n", false));
             System.out.println(evaluation.toClassDetailsString());
             System.out.println(evaluation.toMatrixString());
         } catch (Exception e) {
@@ -86,8 +83,9 @@ public class WekaService {
         instance.setMissing(header.classIndex());
 
         try {
-            double prediction = model.classifyInstance(instance);
-            return (int) prediction;
+            int prediction = (int) model.classifyInstance(instance);
+            plotDistribution(instance, prediction);
+            return prediction;
         } catch (Exception e) {
             throw new RuntimeException("Bei der Prediction ist ein Fehler aufgetreten: " + e);
         }
@@ -133,5 +131,27 @@ public class WekaService {
         }
 
     }
+
+    private void plotDistribution(Instance instance, int prediction) throws Exception {
+
+        double[] distribution = model.distributionForInstance(instance);
+
+        System.out.println("\n=== Verteilung für diese Instanz ===\n");
+
+        for (int i = 0; i < distribution.length; i++) {
+            String className = instance.classAttribute().value(i);
+
+            double percent = distribution[i] * 100;
+            int barLength = (int) (percent / 2);
+            String bar = "█".repeat(barLength);
+
+            String marker = (i == prediction ? ">" : " ");
+
+            System.out.printf("%s %-2s: %6.2f%% | %s\n", marker, className, percent, bar);
+        }
+
+    }
+
+
 
 }
